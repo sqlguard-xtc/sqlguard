@@ -233,7 +233,7 @@ Validates database security and access controls.
 - [Getting Started Guide](docs/getting-started.md)
 - [Spec v1 Reference](docs/spec-v1.md)
 - [Examples](docs/examples/)
-- [Releasing Guide](docs/releasing.md)
+- [Releases](docs/releases.md)
 
 ---
 
