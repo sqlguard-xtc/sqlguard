@@ -49,9 +49,39 @@ sqlguard --version
 
 ## Quick Start
 
-### CI/CD Integration (Primary Use Case)
+### Overview
 
-SqlGuard is designed to run in automated pipelines. Here's a GitHub Actions example:
+SqlGuard validation requires two things:
+1. **A spec file** (`sqlguard-spec.yaml`) - defines what to validate
+2. **A CI/CD pipeline** - runs the validation automatically
+
+### 1. Create Your Spec File
+
+Create `sqlguard-spec.yaml` in your repository root:
+
+```yaml
+version: 1
+
+connections:
+  default:
+    connectionStringEnv: SQLGUARD_CONNECTION_STRING
+
+suites:
+  - name: database-checks
+    connection: default
+    checks:
+      - id: verify-customer-count
+        type: queryContract
+        query: "SELECT COUNT(*) AS CustomerCount FROM Customers"
+        expect:
+          shape:
+            - name: CustomerCount
+              type: int
+```
+
+### 2. Add to Your CI/CD Pipeline
+
+**Primary Use Case:** SqlGuard is designed to run in automated pipelines.
 
 **GitHub Actions**
 
@@ -116,39 +146,15 @@ steps:
     script: 'sqlguard run --spec sqlguard-spec.yaml'
 ```
 
-### Local Testing (Secondary)
+### 3. Local Testing (Optional)
 
 For local development and testing:
 
-1. **Create a specification file** `sqlguard-spec.yaml`:
-
-```yaml
-version: 1
-
-connections:
-  default:
-    connectionStringEnv: SQLGUARD_CONNECTION_STRING
-
-suites:
-  - name: database-checks
-    connection: default
-    checks:
-      - id: verify-customer-count
-        type: queryContract
-        query: "SELECT COUNT(*) AS CustomerCount FROM Customers"
-        expect:
-          shape:
-            - name: CustomerCount
-              type: int
-```
-
-2. **Set connection string**:
-
 ```bash
+# Set connection string
 export SQLGUARD_CONNECTION_STRING="Server=localhost;Database=mydb;Integrated Security=true"
-```
 
-3. **Run validation**:
+# Run validation
 
 ```bash
 sqlguard run --spec sqlguard-spec.yaml

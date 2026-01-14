@@ -2,27 +2,56 @@
 
 This guide walks you through setting up SqlGuard in your CI/CD pipeline and running database validations.
 
-## What You'll Learn
+## What You'll Need
 
-- How to integrate SqlGuard into CI/CD pipelines
-- How to create your first spec file
-- How to run validations against your SQL Server database
-- How to interpret results and handle failures
-
-## Prerequisites
-
-Before starting, make sure you have:
-
-- **SQL Server** (2019 or later recommended)
+- **SQL Server** (2019 or later)
 - **Database access** with at least `SELECT` permissions
-- **CI/CD pipeline** (GitHub Actions, Azure Pipelines, or similar)
-- **A database to validate** (we'll use examples with a `Customers` table)
+- **CI/CD pipeline** (GitHub Actions, Azure Pipelines, etc.)
+- **A spec file** defining what to validate
 
----
+## Quick Start
 
-## CI/CD Setup (Recommended)
+### Step 1: Create Your Spec File
 
-SqlGuard is designed for CI/CD pipelines. Here's how to integrate it:
+Create `sqlguard-spec.yaml` in your repository root. This declares what database behavior to validate:
+
+```yaml
+version: 1
+
+connections:
+  default:
+    connectionStringEnv: SQLGUARD_CONNECTION_STRING
+
+suites:
+  - name: basic-validation
+    connection: default
+    checks:
+      # Validate query result structure
+      - id: customer-count
+        type: queryContract
+        query: "SELECT COUNT(*) AS Total FROM Customers WHERE Active = 1"
+        expect:
+          shape:
+            - name: Total
+              type: int
+              nullable: false
+      
+      # Assert data invariant
+      - id: no-orphaned-orders
+        type: invariant
+        query: |
+          SELECT COUNT(*) AS Orphans
+          FROM Orders o
+          LEFT JOIN Customers c ON o.CustomerId = c.CustomerId
+          WHERE c.CustomerId IS NULL
+        expect:
+          operator: equals
+          expectedValue: 0
+```
+
+### Step 2: Add to CI/CD Pipeline
+
+**SqlGuard is designed to run in automated pipelines.** Choose your platform:
 
 ### GitHub Actions
 
@@ -106,7 +135,9 @@ steps:
     script: 'sqlguard run --spec sqlguard-spec.yaml'
 ```
 
-### Configure Connection String Secret
+### Step 3: Configure Secrets
+
+Store your database connection string securely:
 
 **GitHub Actions:**
 1. Go to repository Settings → Secrets and variables → Actions
@@ -122,9 +153,9 @@ steps:
 
 ## Local Testing (Optional)
 
-For local development and testing before pushing to CI:
+For testing locally before pushing to CI:
 
-### Step 1: Installation
+### Install SqlGuard
 
 Download the appropriate binary for your platform from the [releases page](releases.md):
 
@@ -155,9 +186,7 @@ Verify it works:
 ./sqlguard version
 ```
 
-### Step 2: Prepare Your Database Connection
-
-SqlGuard uses environment variables for connection strings to keep credentials secure.
+### Set Connection String
 
 **Windows (PowerShell):**
 ```powershell
@@ -177,9 +206,15 @@ export SQLGUARD_CONNECTION_STRING="Server=localhost;Database=MyDatabase;User Id=
 
 ### Verify Database Access
 
-Test your connection string works:
+TestRun Validation
 
-```sql
+```bash
+sqlguard run --spec sqlguard-spec.yaml
+```
+
+---
+
+## Next Steps
 -- Ensure you can connect and query
 SELECT GETDATE() AS CurrentTime
 ```
