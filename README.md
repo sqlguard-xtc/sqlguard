@@ -49,9 +49,78 @@ sqlguard --version
 
 ## Quick Start
 
-### 1. Create a Specification File
+### CI/CD Integration (Primary Use Case)
 
-Create `sqlguard-spec.yaml`:
+SqlGuard is designed to run in automated pipelines. Here's a GitHub Actions example:
+
+**GitHub Actions**
+
+```yaml
+name: Database Validation
+
+on:
+  pull_request:
+    paths:
+      - 'database/**'
+  push:
+    branches: [main]
+
+jobs:
+  validate-database:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download SqlGuard
+        run: |
+          curl -LO https://github.com/sqlguard-xtc/sqlguard/releases/latest/download/sqlguard-linux-x64
+          chmod +x sqlguard-linux-x64
+          sudo mv sqlguard-linux-x64 /usr/local/bin/sqlguard
+      
+      - name: Validate database contracts
+        env:
+          SQLGUARD_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
+        run: sqlguard run --spec sqlguard-spec.yaml
+```
+
+**Azure Pipelines**
+
+```yaml
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - database/*
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: Bash@3
+  displayName: 'Download SqlGuard'
+  inputs:
+    targetType: 'inline'
+    script: |
+      curl -LO https://github.com/sqlguard-xtc/sqlguard/releases/latest/download/sqlguard-linux-x64
+      chmod +x sqlguard-linux-x64
+      sudo mv sqlguard-linux-x64 /usr/local/bin/sqlguard
+
+- task: Bash@3
+  displayName: 'Run database validation'
+  env:
+    SQLGUARD_CONNECTION_STRING: $(DbConnectionString)
+  inputs:
+    targetType: 'inline'
+    script: 'sqlguard run --spec sqlguard-spec.yaml'
+```
+
+### Local Testing (Secondary)
+
+For local development and testing:
+
+1. **Create a specification file** `sqlguard-spec.yaml`:
 
 ```yaml
 version: 1
@@ -71,18 +140,15 @@ suites:
           shape:
             - name: CustomerCount
               type: int
-          rows:
-            - operator: equals
-              expectedValue: 50
 ```
 
-### 2. Set Environment Variable
+2. **Set connection string**:
 
 ```bash
-export SQLGUARD_CONNECTION_STRING="Server=localhost;Database=mydb;User Id=user;Password=pass"
+export SQLGUARD_CONNECTION_STRING="Server=localhost;Database=mydb;Integrated Security=true"
 ```
 
-### 3. Run Validation
+3. **Run validation**:
 
 ```bash
 sqlguard run --spec sqlguard-spec.yaml
@@ -170,13 +236,11 @@ SqlGuard uses consistent exit codes for CI/CD integration:
 | `2` | Configuration Errors | Invalid spec or configuration |
 | `3` | Runtime Errors | Database connectivity, SQL execution, or system errors |
 
-**CI/CD Example (GitHub Actions):**
+**Usage in CI/CD:**
 
-```yaml
-- name: Run SqlGuard validation
-  run: sqlguard run --spec sqlguard-spec.yaml
-  # Fails the job if exit code is non-zero
-```
+SqlGuard's deterministic behavior and semantic exit codes make it ideal for automated validation. The pipeline fails automatically when checks don't pass (exit code 1) or configuration errors occur (exit code 2).
+
+See the [Quick Start](#quick-start) section for complete pipeline examples.
 
 ---
 

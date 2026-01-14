@@ -1,13 +1,13 @@
 # Getting Started with SqlGuard
 
-This guide walks you through installing SqlGuard and running your first database validation in about 10 minutes.
+This guide walks you through setting up SqlGuard in your CI/CD pipeline and running database validations.
 
 ## What You'll Learn
 
-- How to install SqlGuard
+- How to integrate SqlGuard into CI/CD pipelines
 - How to create your first spec file
 - How to run validations against your SQL Server database
-- How to interpret results
+- How to interpret results and handle failures
 
 ## Prerequisites
 
@@ -15,12 +15,116 @@ Before starting, make sure you have:
 
 - **SQL Server** (2019 or later recommended)
 - **Database access** with at least `SELECT` permissions
+- **CI/CD pipeline** (GitHub Actions, Azure Pipelines, or similar)
 - **A database to validate** (we'll use examples with a `Customers` table)
-- **Command line access** (PowerShell on Windows, Bash on Linux)
 
 ---
 
-## Step 1: Installation
+## CI/CD Setup (Recommended)
+
+SqlGuard is designed for CI/CD pipelines. Here's how to integrate it:
+
+### GitHub Actions
+
+Add this workflow to `.github/workflows/database-validation.yml`:
+
+```yaml
+name: Database Validation
+
+on:
+  pull_request:
+    paths:
+      - 'database/**'
+      - 'sqlguard-spec.yaml'
+  push:
+    branches: [main]
+
+jobs:
+  validate-database:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download SqlGuard
+        run: |
+          curl -LO https://github.com/sqlguard-xtc/sqlguard/releases/latest/download/sqlguard-linux-x64
+          chmod +x sqlguard-linux-x64
+          sudo mv sqlguard-linux-x64 /usr/local/bin/sqlguard
+      
+      - name: Verify installation
+        run: sqlguard version
+      
+      - name: Validate database contracts
+        env:
+          SQLGUARD_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
+        run: sqlguard run --spec sqlguard-spec.yaml --format junit --out test-results.xml
+      
+      - name: Publish test results
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: SqlGuard Results
+          path: test-results.xml
+          reporter: java-junit
+```
+
+### Azure Pipelines
+
+Add this to `azure-pipelines.yml`:
+
+```yaml
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - database/*
+      - sqlguard-spec.yaml
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: Bash@3
+  displayName: 'Install SqlGuard'
+  inputs:
+    targetType: 'inline'
+    script: |
+      curl -LO https://github.com/sqlguard-xtc/sqlguard/releases/latest/download/sqlguard-linux-x64
+      chmod +x sqlguard-linux-x64
+      sudo mv sqlguard-linux-x64 /usr/local/bin/sqlguard
+      sqlguard version
+
+- task: Bash@3
+  displayName: 'Run database validation'
+  env:
+    SQLGUARD_CONNECTION_STRING: $(DbConnectionString)
+  inputs:
+    targetType: 'inline'
+    script: 'sqlguard run --spec sqlguard-spec.yaml'
+```
+
+### Configure Connection String Secret
+
+**GitHub Actions:**
+1. Go to repository Settings → Secrets and variables → Actions
+2. Add secret: `DB_CONNECTION_STRING`
+3. Value: `Server=yourserver;Database=yourdb;User Id=user;Password=pass;TrustServerCertificate=true`
+
+**Azure Pipelines:**
+1. Go to Pipelines → Library → Variable groups
+2. Create variable: `DbConnectionString`
+3. Mark as secret
+
+---
+
+## Local Testing (Optional)
+
+For local development and testing before pushing to CI:
+
+### Step 1: Installation
 
 Download the appropriate binary for your platform from the [releases page](releases.md):
 
@@ -51,13 +155,9 @@ Verify it works:
 ./sqlguard version
 ```
 
----
-
-## Step 2: Prepare Your Database Connection
+### Step 2: Prepare Your Database Connection
 
 SqlGuard uses environment variables for connection strings to keep credentials secure.
-
-### Set Connection String
 
 **Windows (PowerShell):**
 ```powershell
@@ -69,8 +169,7 @@ $env:SQLGUARD_CONNECTION_STRING = "Server=localhost;Database=MyDatabase;User Id=
 export SQLGUARD_CONNECTION_STRING="Server=localhost;Database=MyDatabase;User Id=myuser;Password=mypass;TrustServerCertificate=true"
 ```
 
-### Connection String Tips
-
+**Connection String Tips:**
 - Use `Integrated Security=true` for Windows Authentication
 - Add `TrustServerCertificate=true` for dev/test environments with self-signed certificates
 - Use `Encrypt=true` for production connections
