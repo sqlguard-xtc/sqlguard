@@ -1,0 +1,132 @@
+# Invariant Check Examples (Pass)
+# =================================
+# Demonstrates invariant checks that validate data quality and business rules.
+# These checks ensure that certain conditions always hold true in the database.
+#
+# These examples assume a database with Customers, Products, Orders, and OrderItems tables.
+# Adapt the connection string and queries to match your database schema and business rules.
+
+version: 1
+
+connections:
+  - name: my-database
+    connectionStringEnv: SQLGUARD_CONNECTION_STRING
+
+suites:
+  - name: invariant-examples
+    connection: my-database
+    checks:
+      # Example 1: Referential integrity check (equals zero)
+      - type: invariant
+        name: no-orphaned-orders
+        description: All orders must have valid customer references
+        query: |
+          SELECT COUNT(*) AS ViolationCount
+          FROM dbo.Orders o
+          LEFT JOIN dbo.Customers c ON o.CustomerId = c.CustomerId
+          WHERE c.CustomerId IS NULL
+        operator: equals
+        expectedValue: '0'
+      
+      # Example 2: Another referential integrity check
+      - type: invariant
+        name: no-orphaned-order-items
+        description: All order items must belong to existing orders
+        query: |
+          SELECT COUNT(*) AS ViolationCount
+          FROM dbo.OrderItems oi
+          LEFT JOIN dbo.Orders o ON oi.OrderId = o.OrderId
+          WHERE o.OrderId IS NULL
+        operator: equals
+        expectedValue: '0'
+      
+      # Example 3: Business rule validation (non-negative amounts)
+      - type: invariant
+        name: no-negative-prices
+        description: Product prices must never be negative
+        query: |
+          SELECT COUNT(*) AS ViolationCount
+          FROM dbo.Products
+          WHERE Price < 0
+        operator: equals
+        expectedValue: '0'
+      
+      # Example 4: Data format validation
+      - type: invariant
+        name: valid-email-format
+        description: Customer emails must contain @ symbol when not NULL
+        query: |
+          SELECT COUNT(*) AS InvalidEmails
+          FROM dbo.Customers
+          WHERE Email IS NOT NULL 
+            AND Email != ''
+            AND Email NOT LIKE '%@%'
+        operator: equals
+        expectedValue: '0'
+      
+      # Example 5: Status consistency check
+      - type: invariant
+        name: valid-order-statuses
+        description: All orders must have valid status values
+        query: |
+          SELECT COUNT(*) AS InvalidStatuses
+          FROM dbo.Orders
+          WHERE Status NOT IN ('Pending', 'Processing', 'Completed', 'Cancelled')
+        operator: equals
+        expectedValue: '0'
+      
+      # Example 6: Numeric comparison (greater than)
+      - type: invariant
+        name: minimum-active-customers
+        description: Database must have at least 3 active customers
+        query: |
+          SELECT COUNT(*) AS ActiveCustomers
+          FROM dbo.Customers
+          WHERE IsActive = 1
+        operator: greaterThanOrEqual
+        expectedValue: '3'
+      
+      # Example 7: Exact count validation
+      - type: invariant
+        name: exact-product-categories
+        description: Database must have exactly 3 product categories
+        query: |
+          SELECT COUNT(DISTINCT Category) AS CategoryCount
+          FROM dbo.Products
+          WHERE IsActive = 1
+        operator: equals
+        expectedValue: '3'
+      
+      # Example 8: Line total calculation integrity
+      - type: invariant
+        name: correct-line-totals
+        description: OrderItems LineTotal must equal Quantity * UnitPrice
+        query: |
+          SELECT COUNT(*) AS IncorrectLineTotals
+          FROM dbo.OrderItems
+          WHERE ABS(LineTotal - (Quantity * UnitPrice)) > 0.01
+        operator: equals
+        expectedValue: '0'
+      
+      # Example 9: String comparison (contains)
+      - type: invariant
+        name: customer-codes-have-prefix
+        description: All customer codes must start with CUST prefix
+        query: |
+          SELECT COUNT(*) AS InvalidCodes
+          FROM dbo.Customers
+          WHERE CustomerCode NOT LIKE 'CUST%'
+        operator: equals
+        expectedValue: '0'
+      
+      # Example 10: Aggregate validation (less than)
+      - type: invariant
+        name: reasonable-average-order-value
+        description: Average order value should be less than 10000
+        query: |
+          SELECT AVG(TotalAmount) AS AvgOrderValue
+          FROM dbo.Orders
+          WHERE Status = 'Completed'
+        operator: lessThan
+        expectedValue: '10000'
+

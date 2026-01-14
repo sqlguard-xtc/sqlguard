@@ -1,0 +1,32 @@
+{
+  "toolVersion": "1.0.0",
+  "startedUtc": "2026-01-09T10:30:00.0000000Z",
+  "finishedUtc": "2026-01-09T10:30:01.2340000Z",
+  "specHash": "a3f5e9b2c1d4f8a7e6b9c2d5f8a1e4b7c9d2f5a8e1b4c7d9f2a5e8b1c4d7f9a2",
+  "summary": {
+    "totalChecks": 1,
+    "passedChecks": 1,
+    "failedChecks": 0,
+    "erroredChecks": 0,
+    "skippedChecks": 0,
+    "errorCategory": 0
+  },
+  "suites": [
+    {
+      "name": "basic-validation",
+      "status": 0,
+      "durationMs": 234,
+      "checks": [
+        {
+          "id": "basic-validation.customer-count",
+          "type": "queryContract",
+          "name": "customer-count",
+          "status": 0,
+          "durationMs": 234,
+          "diagnostics": null,
+          "errorMessage": null
+        }
+      ]
+    }
+  ]
+}

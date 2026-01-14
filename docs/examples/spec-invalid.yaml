@@ -1,0 +1,258 @@
+# SqlGuard Invalid Specification Example
+# ========================================
+# This specification contains DELIBERATE ERRORS to demonstrate common
+# validation failures and help users understand spec validation rules.
+#
+# ⚠️ THIS SPEC IS INTENTIONALLY INVALID AND WILL FAIL VALIDATION ⚠️
+#
+# See docs/examples/README.md for detailed explanations of each error.
+
+version: 1
+
+connections:
+  # ERROR 1: Missing required 'connectionStringEnv' property
+  # Connection definitions MUST use environment variables for security
+  - name: invalid-connection-1
+    connectionString: "Server=localhost;Database=test;User Id=sa;Password=secret123"
+  
+  # ERROR 2: Empty connection name
+  # Connection names cannot be empty strings
+  - name: ""
+    connectionStringEnv: SQLGUARD_CONN_EMPTY
+  
+  # ERROR 3: Duplicate connection name
+  # Each connection must have a unique name
+  - name: duplicate-conn
+    connectionStringEnv: SQLGUARD_CONN_DUP1
+  
+  - name: duplicate-conn
+    connectionStringEnv: SQLGUARD_CONN_DUP2
+  
+  # Valid connection for other tests
+  - name: valid-connection
+    connectionStringEnv: SQLGUARD_CONN_VALID
+
+suites:
+  # ERROR 4: Suite references non-existent connection
+  - name: invalid-connection-ref
+    connection: nonexistent-connection
+    checks:
+      - type: queryContract
+        name: example-check
+        description: This check won't run due to invalid connection
+        query: SELECT 1 AS Value
+        expectedColumns:
+          - Value
+  
+  # ERROR 5: Empty suite name
+  - name: ""
+    connection: valid-connection
+    checks:
+      - type: queryContract
+        name: check-in-empty-suite
+        description: Suite names cannot be empty
+        query: SELECT 1
+        expectedColumns:
+          - Value
+  
+  # ERROR 6: Duplicate suite name
+  - name: duplicate-suite
+    connection: valid-connection
+    checks:
+      - type: queryContract
+        name: first-check
+        description: First suite with this name
+        query: SELECT 1
+        expectedColumns:
+          - Value
+  
+  - name: duplicate-suite
+    connection: valid-connection
+    checks:
+      - type: queryContract
+        name: second-check
+        description: Duplicate suite name - not allowed
+        query: SELECT 2
+        expectedColumns:
+          - Value
+  
+  # Suite with multiple check errors
+  - name: check-validation-errors
+    connection: valid-connection
+    
+    checks:
+      # ERROR 7: Unknown check type
+      - type: unknownCheckType
+        name: invalid-type-check
+        description: This check type doesn't exist
+        query: SELECT 1
+      
+      # ERROR 8: Missing required 'name' property
+      - type: queryContract
+        description: This check has no name
+        query: SELECT 1
+        expectedColumns:
+          - Value
+      
+      # ERROR 9: Empty check name
+      - type: queryContract
+        name: ""
+        description: Check names cannot be empty
+        query: SELECT 1
+        expectedColumns:
+          - Value
+      
+      # ERROR 10: Duplicate check name within suite
+      - type: queryContract
+        name: duplicate-check-name
+        description: First check with this name
+        query: SELECT 1 AS FirstValue
+        expectedColumns:
+          - FirstValue
+      
+      - type: invariant
+        name: duplicate-check-name
+        description: Duplicate check name - not allowed within same suite
+        query: SELECT COUNT(*) FROM Users
+        expectZero: true
+      
+      # ERROR 11: Missing required 'description' property
+      - type: queryContract
+        name: no-description-check
+        query: SELECT 1 AS Value
+        expectedColumns:
+          - Value
+      
+      # ERROR 12: Missing required 'query' property
+      - type: queryContract
+        name: no-query-check
+        description: This check has no query
+        expectedColumns:
+          - Value
+      
+      # ERROR 13: Empty query string
+      - type: queryContract
+        name: empty-query-check
+        description: Query cannot be empty or whitespace-only
+        query: "   "
+        expectedColumns:
+          - Value
+  
+  # Suite with queryContract-specific errors
+  - name: query-contract-errors
+    connection: valid-connection
+    
+    checks:
+      # ERROR 14: Missing required 'expectedColumns' property
+      - type: queryContract
+        name: no-columns-check
+        description: queryContract checks must specify expectedColumns
+        query: SELECT 1 AS Value, 2 AS OtherValue
+      
+      # ERROR 15: Empty expectedColumns list
+      - type: queryContract
+        name: empty-columns-list
+        description: expectedColumns cannot be an empty list
+        query: SELECT 1
+        expectedColumns: []
+      
+      # ERROR 16: Duplicate column names in expectedColumns
+      - type: queryContract
+        name: duplicate-column-names
+        description: expectedColumns must not contain duplicates
+        query: SELECT 1 AS Value, 2 AS Value
+        expectedColumns:
+          - Value
+          - Value
+      
+      # ERROR 17: Empty column name in expectedColumns
+      - type: queryContract
+        name: empty-column-name
+        description: Column names cannot be empty strings
+        query: SELECT 1, 2
+        expectedColumns:
+          - ""
+          - Column2
+      
+      # ERROR 18: Negative expectedRowCount
+      - type: queryContract
+        name: negative-row-count
+        description: expectedRowCount cannot be negative
+        query: SELECT 1
+        expectedColumns:
+          - Value
+        expectedRowCount: -5
+      
+      # ERROR 19: Zero expectedRowCount (should use invariant instead)
+      - type: queryContract
+        name: zero-row-count
+        description: expectedRowCount of 0 is not allowed for queryContract
+        query: SELECT 1 WHERE 1=0
+        expectedColumns:
+          - Value
+        expectedRowCount: 0
+  
+  # Suite with invariant-specific errors
+  - name: invariant-errors
+    connection: valid-connection
+    
+    checks:
+      # ERROR 20: Missing required 'expectZero' property
+      - type: invariant
+        name: no-expect-zero
+        description: invariant checks must specify expectZero
+        query: SELECT COUNT(*) FROM Users WHERE UserId < 0
+      
+      # ERROR 21: expectZero set to false (must be true for invariants)
+      - type: invariant
+        name: expect-zero-false
+        description: expectZero must be true for invariant checks
+        query: SELECT COUNT(*) FROM Users
+        expectZero: false
+      
+      # ERROR 22: Unexpected property for invariant type
+      - type: invariant
+        name: invariant-with-columns
+        description: invariant checks should not have expectedColumns
+        query: SELECT COUNT(*) AS ViolationCount FROM Users WHERE Email IS NULL
+        expectZero: true
+        expectedColumns:
+          - ViolationCount
+  
+  # Suite with permission-specific errors
+  - name: permission-errors
+    connection: valid-connection
+    
+    checks:
+      # ERROR 23: Missing required 'principal' property
+      - type: permission
+        name: no-principal
+        description: permission checks must specify principal
+        query: SELECT permission_name FROM fn_my_permissions(NULL, 'DATABASE')
+      
+      # ERROR 24: Missing both expectedAllow and expectedDeny
+      - type: permission
+        name: permission-no-expectations
+        description: permission checks must specify expectedAllow or expectedDeny
+        query: SELECT permission_name FROM fn_my_permissions(NULL, 'DATABASE')
+        principal: app_user
+
+  # ERROR 25: Suite with no checks
+  - name: empty-suite
+    connection: valid-connection
+    checks: []
+
+# ERROR 26: Missing 'suites' property entirely would cause error
+# (but we need at least the property defined for YAML to parse)
+
+# ERROR 27: Invalid version number
+# Uncomment to test: version: 999
+
+# ERROR 28: Missing 'version' property entirely
+# Uncomment to test by removing the version line at the top
+
+# ERROR 29: Missing 'connections' property entirely
+# Uncomment to test by removing the connections section
+
+# ERROR 30: Empty connections list
+# Uncomment to test: connections: []

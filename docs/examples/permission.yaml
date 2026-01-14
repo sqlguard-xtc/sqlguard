@@ -1,0 +1,128 @@
+# Permission Check Examples (Pass)
+# ==================================
+# Demonstrates permission checks that validate database user permissions.
+# These checks ensure users have appropriate access rights and lack dangerous permissions.
+#
+# These examples assume database users: app_user, readonly_user, writer_user, admin_user.
+# Adapt the connection string, principal names, and permissions to match your database security setup.
+# Note: SqlGuard automatically executes queries as the specified principal using EXECUTE AS.
+
+version: 1
+
+connections:
+  - name: my-database
+    connectionStringEnv: SQLGUARD_CONNECTION_STRING
+
+suites:
+  - name: permission-examples
+    connection: my-database
+    checks:
+      # Example 1: Verify readonly user lacks write permissions
+      - type: permission
+        name: readonly-user-no-write-customers
+        description: Read-only user must not have INSERT/UPDATE/DELETE on Customers
+        query: |
+          SELECT permission_name
+          FROM fn_my_permissions('dbo.Customers', 'OBJECT')
+          WHERE permission_name IN ('INSERT', 'UPDATE', 'DELETE');
+        principal: readonly_user
+        expectedDeny:
+          - INSERT
+          - UPDATE
+          - DELETE
+      
+      # Example 2: Verify readonly user has SELECT permission
+      - type: permission
+        name: readonly-user-has-select
+        description: Read-only user must have SELECT permission on tables
+        query: |
+          SELECT permission_name
+          FROM fn_my_permissions('dbo.Customers', 'OBJECT')
+          WHERE permission_name = 'SELECT';
+        principal: readonly_user
+        expectedAllow:
+          - SELECT
+      
+      # Example 3: Verify app user lacks DDL permissions
+      - type: permission
+        name: app-user-no-ddl
+        description: Application user must not have schema-altering permissions
+        query: |
+          SELECT permission_name
+          FROM fn_my_permissions(NULL, 'SCHEMA')
+          WHERE permission_name IN ('ALTER', 'CONTROL') 
+            AND class_desc = 'SCHEMA';
+        principal: app_user
+        expectedDeny:
+          - ALTER
+          - CONTROL
+      
+      # Example 4: Verify app user has specific table permissions
+      - type: permission
+        name: app-user-orders-permissions
+        description: App user needs SELECT/INSERT/UPDATE on Orders table
+        query: |
+          SELECT permission_name
+          FROM fn_my_permissions('dbo.Orders', 'OBJECT')
+          WHERE permission_name IN ('SELECT', 'INSERT', 'UPDATE');
+        principal: app_user
+        expectedAllow:
+          - SELECT
+          - INSERT
+          - UPDATE
+      
+      # Example 5: Verify writer user lacks admin permissions
+      - type: permission
+        name: writer-user-no-admin
+        description: Writer user must not have CREATE USER or ALTER USER permissions
+        query: |
+          SELECT permission_name
+          FROM fn_my_permissions(NULL, 'DATABASE')
+          WHERE permission_name IN ('ALTER ANY USER', 'CREATE USER');
+        principal: writer_user
+        expectedDeny:
+          - ALTER ANY USER
+          - CREATE USER
+      
+      # Example 6: Verify admin user has control permissions
+      - type: permission
+        name: admin-user-has-control
+        description: Admin user must have CONTROL permission on schema
+        query: |
+          SELECT permission_name
+          FROM fn_my_permissions(NULL, 'SCHEMA')
+          WHERE permission_name = 'CONTROL'
+            AND class_desc = 'SCHEMA';
+        principal: admin_user
+        expectedAllow:
+          - CONTROL
+      
+      # Example 7: Verify app user can execute specific stored procedure
+      - type: permission
+        name: app-user-execute-sproc
+        description: App user must have EXECUTE permission on customer orders procedure
+        query: |
+          SELECT permission_name
+          FROM fn_my_permissions('dbo.usp_GetCustomerOrders', 'OBJECT')
+          WHERE permission_name = 'EXECUTE';
+        principal: app_user
+        expectedAllow:
+          - EXECUTE
+      
+      # Example 8: Comprehensive permission check (both allow and deny)
+      - type: permission
+        name: app-user-balanced-permissions
+        description: App user should have read/write but not delete on OrderItems
+        query: |
+          SELECT permission_name
+          FROM fn_my_permissions('dbo.OrderItems', 'OBJECT')
+          WHERE permission_name IN ('SELECT', 'INSERT', 'UPDATE', 'DELETE');
+        principal: app_user
+        expectedAllow:
+          - SELECT
+          - INSERT
+        expectedDeny:
+          - UPDATE  # App user doesn't have UPDATE on OrderItems
+          - DELETE  # App user doesn't have DELETE on OrderItems
+
+

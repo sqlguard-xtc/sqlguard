@@ -1,0 +1,18 @@
+# Never commit secrets or credentials
+*.key
+*.pem
+*.pfx
+*secret*
+*password*
+*credential*
+connection-string*
+
+# Environment files with potential secrets
+.env
+.env.local
+*.local
+
+# Temporary files
+*.tmp
+*.temp
+~*

@@ -1,0 +1,95 @@
+# Permission Check Examples (Fail)
+# ==================================
+# Demonstrates permission checks that intentionally FAIL.
+# These examples show incorrect permission expectations.
+#
+# Exit code: 1 (validation failures)
+# Adapt the connection string and principal names to match your database security setup.
+
+version: 1
+
+connections:
+  - name: my-database
+    connectionStringEnv: SQLGUARD_CONNECTION_STRING
+
+suites:
+  - name: permission-failures
+    connection: my-database
+    checks:
+      # Failure 1: Expecting permissions that aren't granted
+      - type: permission
+        name: readonly-expecting-write
+        description: Expects readonly user to have INSERT (will fail - they don't)
+        query: |
+          SELECT permission_name
+          FROM fn_my_permissions('dbo.Customers', 'OBJECT')
+          WHERE permission_name IN ('SELECT', 'INSERT', 'UPDATE');
+        principal: readonly_user
+        expectedAllow:
+          - SELECT
+          - INSERT  # ❌ Wrong: readonly user does NOT have INSERT
+          - UPDATE  # ❌ Wrong: readonly user does NOT have UPDATE
+      
+      # Failure 2: Expecting denied permissions that are actually granted
+      - type: permission
+        name: writer-expecting-no-select
+        description: Expects writer user to lack SELECT (will fail - they have it)
+        query: |
+          SELECT permission_name
+          FROM fn_my_permissions('dbo.Orders', 'OBJECT')
+          WHERE permission_name IN ('SELECT', 'INSERT', 'UPDATE', 'DELETE');
+        principal: writer_user
+        expectedDeny:
+          - SELECT  # ❌ Wrong: writer user DOES have SELECT
+      
+      # Failure 3: Wrong principal name
+      - type: permission
+        name: wrong-principal-name
+        description: Uses non-existent principal (will fail at runtime)
+        query: |
+          SELECT permission_name
+          FROM fn_my_permissions('dbo.Customers', 'OBJECT')
+          WHERE permission_name = 'SELECT'
+        principal: nonexistent_user  # ❌ Wrong: this user doesn't exist
+        expectedAllow:
+          - SELECT
+      
+      # Failure 4: Expecting admin to lack permissions they have
+      - type: permission
+        name: admin-expecting-no-control
+        description: Expects admin user to lack CONTROL (will fail - they have it)
+        query: |
+          SELECT permission_name
+          FROM fn_my_permissions(NULL, 'SCHEMA')
+          WHERE permission_name = 'CONTROL'
+            AND class_desc = 'SCHEMA';
+        principal: admin_user
+        expectedDeny:
+          - CONTROL  # ❌ Wrong: admin user DOES have CONTROL
+      
+      # Failure 5: App user expecting permissions they don't have
+      - type: permission
+        name: app-user-expecting-schema-alter
+        description: Expects app user to have ALTER SCHEMA (will fail - denied)
+        query: |
+          SELECT permission_name
+          FROM fn_my_permissions(NULL, 'DATABASE')
+          WHERE permission_name IN ('ALTER SCHEMA', 'CREATE SCHEMA');
+        principal: app_user
+        expectedAllow:
+          - ALTER SCHEMA   # ❌ Wrong: explicitly denied to app user
+          - CREATE SCHEMA  # ❌ Wrong: explicitly denied to app user
+      
+      # Failure 6: Wrong expectation about procedure permissions
+      - type: permission
+        name: readonly-expecting-execute-sproc
+        description: Expects readonly to execute sproc (will fail - they can't)
+        query: |
+          SELECT permission_name
+          FROM fn_my_permissions('dbo.usp_GetCustomerOrders', 'OBJECT')
+          WHERE permission_name = 'EXECUTE';
+        principal: readonly_user
+        expectedAllow:
+          - EXECUTE  # ❌ Wrong: readonly user does NOT have EXECUTE on this proc
+
+

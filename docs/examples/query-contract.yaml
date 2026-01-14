@@ -1,0 +1,173 @@
+# Query Contract Check Examples (Pass)
+# ======================================
+# Demonstrates query contract checks that validate query result structure.
+# These checks verify that queries return expected columns in the correct order
+# with correct types and nullability.
+#
+# These examples assume a database with Customers, Products, Orders, and OrderItems tables.
+# Adapt the connection string and queries to match your database schema.
+
+version: 1
+
+connections:
+  - name: my-database
+    connectionStringEnv: SQLGUARD_CONNECTION_STRING
+
+suites:
+  - name: query-contract-examples
+    connection: my-database
+    checks:
+      # Example 1: Basic query contract with column validation
+      - type: queryContract
+        name: active-customers-structure
+        description: Verify active customers query returns expected columns
+        query: |
+          SELECT 
+            CustomerId,
+            CustomerCode,
+            CustomerName,
+            Email,
+            IsActive
+          FROM dbo.Customers
+          WHERE IsActive = 1
+          ORDER BY CustomerId
+        expectedColumns:
+          - name: CustomerId
+            sqlType: int
+            nullable: false
+          - name: CustomerCode
+            sqlType: nvarchar
+            nullable: false
+          - name: CustomerName
+            sqlType: nvarchar
+            nullable: false
+          - name: Email
+            sqlType: nvarchar
+            nullable: true  # Email can be NULL
+          - name: IsActive
+            sqlType: bit
+            nullable: false
+      
+      # Example 2: Query contract with exact row count validation
+      - type: queryContract
+        name: product-categories-structure
+        description: Verify product categories query (expects exactly 3 categories)
+        query: |
+          SELECT DISTINCT
+            Category
+          FROM dbo.Products
+          WHERE IsActive = 1
+          ORDER BY Category
+        expectedColumns:
+          - name: Category
+            sqlType: nvarchar
+            nullable: false
+        expectedRowCount: 3  # Electronics, Hardware, Software
+      
+      # Example 3: Complex join query contract
+      - type: queryContract
+        name: customer-order-summary-structure
+        description: Verify customer order summary has correct structure
+        query: |
+          SELECT 
+            c.CustomerId,
+            c.CustomerCode,
+            c.CustomerName,
+            COUNT(o.OrderId) AS TotalOrders,
+            ISNULL(SUM(o.TotalAmount), 0) AS TotalRevenue
+          FROM dbo.Customers c
+          LEFT JOIN dbo.Orders o ON c.CustomerId = o.CustomerId
+          WHERE c.IsActive = 1
+          GROUP BY c.CustomerId, c.CustomerCode, c.CustomerName
+          ORDER BY c.CustomerId
+        expectedColumns:
+          - name: CustomerId
+            sqlType: int
+            nullable: false
+          - name: CustomerCode
+            sqlType: nvarchar
+            nullable: false
+          - name: CustomerName
+            sqlType: nvarchar
+            nullable: false
+          - name: TotalOrders
+            sqlType: int
+            nullable: false
+          - name: TotalRevenue
+            sqlType: decimal
+            nullable: false
+      
+      # Example 4: View query contract
+      - type: queryContract
+        name: customer-orders-view-structure
+        description: Verify vw_CustomerOrders view returns expected columns
+        query: |
+          SELECT 
+            CustomerId,
+            CustomerCode,
+            CustomerName,
+            OrderId,
+            OrderNumber,
+            OrderDate,
+            TotalAmount,
+            Status
+          FROM dbo.vw_CustomerOrders
+          WHERE CustomerId = 1
+          ORDER BY OrderDate
+        expectedColumns:
+          - name: CustomerId
+            sqlType: int
+            nullable: false
+          - name: CustomerCode
+            sqlType: nvarchar
+            nullable: false
+          - name: CustomerName
+            sqlType: nvarchar
+            nullable: false
+          - name: OrderId
+            sqlType: int
+            nullable: false
+          - name: OrderNumber
+            sqlType: nvarchar
+            nullable: false
+          - name: OrderDate
+            sqlType: datetime2
+            nullable: false
+          - name: TotalAmount
+            sqlType: decimal
+            nullable: false
+          - name: Status
+            sqlType: nvarchar
+            nullable: false
+      
+      # Example 5: Single-row query contract with exact count
+      - type: queryContract
+        name: specific-customer-structure
+        description: Verify single customer query returns exactly one row
+        query: |
+          SELECT 
+            CustomerId,
+            CustomerCode,
+            CustomerName,
+            Email,
+            CreatedAt
+          FROM dbo.Customers
+          WHERE CustomerCode = 'CUST001'
+        expectedColumns:
+          - name: CustomerId
+            sqlType: int
+            nullable: false
+          - name: CustomerCode
+            sqlType: nvarchar
+            nullable: false
+          - name: CustomerName
+            sqlType: nvarchar
+            nullable: false
+          - name: Email
+            sqlType: nvarchar
+            nullable: true
+          - name: CreatedAt
+            sqlType: datetime2
+            nullable: false
+        expectedRowCount: 1
+

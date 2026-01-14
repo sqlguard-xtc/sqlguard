@@ -1,0 +1,105 @@
+# Invariant Check Examples (Fail)
+# =================================
+# Demonstrates invariant checks that intentionally FAIL.
+# These examples show common failure scenarios for data quality checks.
+#
+# Exit code: 1 (validation failures)
+# Adapt the connection string and queries to match your database schema.
+
+version: 1
+
+connections:
+  - name: my-database
+    connectionStringEnv: SQLGUARD_CONNECTION_STRING
+
+suites:
+  - name: invariant-failures
+    connection: my-database
+    checks:
+      # Failure 1: Expecting zero but finding violations
+      - type: invariant
+        name: expect-no-inactive-customers
+        description: Expects zero inactive customers but test data has one (will fail)
+        query: |
+          SELECT COUNT(*) AS InactiveCount
+          FROM dbo.Customers
+          WHERE IsActive = 0
+        operator: equals
+        expectedValue: '0'  # ❌ Wrong: example database has 1 inactive customer (CUST005)
+      
+      # Failure 2: Wrong expected count
+      - type: invariant
+        name: wrong-customer-count
+        description: Expects wrong number of total customers (will fail)
+        query: |
+          SELECT COUNT(*) AS CustomerCount
+          FROM dbo.Customers
+        operator: equals
+        expectedValue: '10'  # ❌ Wrong: example database has 5 customers, not 10
+      
+      # Failure 3: Wrong comparison operator
+      - type: invariant
+        name: wrong-product-count-comparison
+        description: Uses wrong comparison for product count (will fail)
+        query: |
+          SELECT COUNT(*) AS ProductCount
+          FROM dbo.Products
+          WHERE IsActive = 1
+        operator: lessThan
+        expectedValue: '5'  # ❌ Wrong: example database has 7 active products (not < 5)
+      
+      # Failure 4: Expecting specific string that doesn't match
+      - type: invariant
+        name: wrong-first-customer-code
+        description: Expects wrong customer code value (will fail)
+        query: |
+          SELECT CustomerCode
+          FROM dbo.Customers
+          WHERE CustomerId = 1
+        operator: equals
+        expectedValue: 'CUSTOMER001'  # ❌ Wrong: actual value is 'CUST001'
+      
+      # Failure 5: Aggregate mismatch
+      - type: invariant
+        name: wrong-total-order-value
+        description: Expects wrong total order value (will fail)
+        query: |
+          SELECT SUM(TotalAmount) AS TotalRevenue
+          FROM dbo.Orders
+          WHERE Status = 'Completed'
+        operator: greaterThan
+        expectedValue: '100000'  # ❌ Wrong: actual total is much less
+      
+      # Failure 6: Boolean check with wrong expectation
+      - type: invariant
+        name: wrong-boolean-expectation
+        description: Expects active customers to have zero count (will fail)
+        query: |
+          SELECT 
+            CASE WHEN COUNT(*) > 0 THEN 1 ELSE 0 END AS HasActiveCustomers
+          FROM dbo.Customers
+          WHERE IsActive = 1
+        operator: equals
+        expectedValue: '0'  # ❌ Wrong: should be '1' because active customers exist
+      
+      # Failure 7: String contains check that fails
+      - type: invariant
+        name: product-code-wrong-prefix
+        description: Expects wrong prefix in product codes (will fail)
+        query: |
+          SELECT ProductCode
+          FROM dbo.Products
+          WHERE ProductId = 1
+        operator: startsWith
+        expectedValue: 'ITEM'  # ❌ Wrong: actual prefix is 'PROD'
+      
+      # Failure 8: Numeric threshold too strict
+      - type: invariant
+        name: unrealistic-minimum-orders
+        description: Expects unrealistically high order count (will fail)
+        query: |
+          SELECT COUNT(*) AS OrderCount
+          FROM dbo.Orders
+        operator: greaterThan
+        expectedValue: '1000'  # ❌ Wrong: example database has only 6 orders
+

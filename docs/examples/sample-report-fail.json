@@ -1,0 +1,132 @@
+{
+  "toolVersion": "1.0.0",
+  "startedUtc": "2026-01-09T10:30:00.0000000Z",
+  "finishedUtc": "2026-01-09T10:30:02.5670000Z",
+  "specHash": "b4e6f0c3d2e5f9a8e7c0d3f6a9b2e5c8d0f3a6e9b2c5d8f0a3e6b9c2d5f8a0b3",
+  "summary": {
+    "totalChecks": 5,
+    "passedChecks": 0,
+    "failedChecks": 3,
+    "erroredChecks": 1,
+    "skippedChecks": 1,
+    "errorCategory": 1
+  },
+  "suites": [
+    {
+      "name": "contract-validation",
+      "status": 1,
+      "durationMs": 567,
+      "checks": [
+        {
+          "id": "contract-validation.customers-schema",
+          "type": "queryContract",
+          "name": "customers-schema",
+          "status": 1,
+          "durationMs": 123,
+          "diagnostics": {
+            "shapeDifferences": [
+              {
+                "kind": "TypeMismatch",
+                "columnIndex": 2,
+                "columnName": "Email",
+                "details": {
+                  "expectedType": "nvarchar",
+                  "actualType": "varchar",
+                  "expectedNullable": false,
+                  "actualNullable": false
+                }
+              },
+              {
+                "kind": "MissingColumn",
+                "columnIndex": 3,
+                "columnName": "PhoneNumber",
+                "details": {
+                  "expectedType": "nvarchar",
+                  "expectedNullable": true
+                }
+              }
+            ]
+          },
+          "errorMessage": "Query result shape does not match expected schema. Found 2 differences."
+        }
+      ]
+    },
+    {
+      "name": "invariants",
+      "status": 1,
+      "durationMs": 1000,
+      "checks": [
+        {
+          "id": "invariants.customer-count",
+          "type": "invariant",
+          "name": "customer-count",
+          "status": 1,
+          "durationMs": 234,
+          "diagnostics": {
+            "operator": "equals",
+            "expected": "100",
+            "actual": "95",
+            "passed": false,
+            "failureReason": "Expected value '100' but got '95'"
+          },
+          "errorMessage": "Expected value '100' but got '95'"
+        },
+        {
+          "id": "invariants.product-price-range",
+          "type": "invariant",
+          "name": "product-price-range",
+          "status": 1,
+          "durationMs": 189,
+          "diagnostics": {
+            "operator": "greaterThan",
+            "expected": "0",
+            "actual": "-5.99",
+            "passed": false,
+            "failureReason": "Expected value greater than '0' but got '-5.99'"
+          },
+          "errorMessage": "Expected value greater than '0' but got '-5.99'"
+        },
+        {
+          "id": "invariants.order-totals",
+          "type": "invariant",
+          "name": "order-totals",
+          "status": 2,
+          "durationMs": 45,
+          "diagnostics": null,
+          "errorMessage": "SqlException: Invalid column name 'TotalPrice'"
+        },
+        {
+          "id": "invariants.data-freshness",
+          "type": "invariant",
+          "name": "data-freshness",
+          "status": 3,
+          "durationMs": 0,
+          "diagnostics": null,
+          "errorMessage": "Skipped due to upstream failure"
+        }
+      ]
+    },
+    {
+      "name": "permissions",
+      "status": 1,
+      "durationMs": 456,
+      "checks": [
+        {
+          "id": "permissions.readonly-no-write",
+          "type": "permission",
+          "name": "readonly-no-write",
+          "status": 1,
+          "durationMs": 456,
+          "diagnostics": {
+            "unexpectedDenied": [
+              "INSERT",
+              "UPDATE"
+            ]
+          },
+          "errorMessage": "Found 2 denied permission(s): INSERT, UPDATE"
+        }
+      ]
+    }
+  ]
+}
+

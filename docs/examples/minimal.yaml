@@ -1,0 +1,39 @@
+# Minimal SqlGuard Specification Example
+# ==========================================
+# This is the smallest valid SqlGuard spec that passes validation.
+# It demonstrates the basic structure required for any spec file.
+#
+# This example assumes a database with a Customers table.
+# Adapt the connection string and table/column names to match your database.
+
+version: 1
+
+connections:
+  - name: my-database
+    connectionStringEnv: SQLGUARD_CONNECTION_STRING
+
+suites:
+  - name: basic-check
+    connection: my-database
+    checks:
+      - type: queryContract
+        name: verify-customers-table-structure
+        description: Validate Customers table has expected columns
+        query: |
+          SELECT 
+            CustomerId,
+            CustomerCode,
+            CustomerName
+          FROM dbo.Customers
+          WHERE CustomerId = 1
+        expectedColumns:
+          - name: CustomerId
+            sqlType: int
+            nullable: false
+          - name: CustomerCode
+            sqlType: nvarchar
+            nullable: false
+          - name: CustomerName
+            sqlType: nvarchar
+            nullable: false
+
