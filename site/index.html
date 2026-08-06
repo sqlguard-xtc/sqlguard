@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="SqlGuard — deterministic, CI-first CLI validation for SQL Server behavior." />
+  <title>SqlGuard</title>
+
+  <!-- Canonical (www is canonical) -->
+  <link rel="canonical" href="https://www.sqlguard.dev/" />
+
+  <link rel="icon" type="image/svg+xml" href="assets/img/mark.svg" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+
+  <!-- Social preview -->
+  <meta property="og:title" content="SqlGuard" />
+  <meta property="og:description" content="Deterministic, CI-first CLI validation for SQL Server behavior after schema/data changes." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://www.sqlguard.dev/" />
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="brand">
+        <img class="brand-mark" src="assets/img/mark.svg" alt="SqlGuard logo" width="28" height="28" loading="eager" />
+        <span class="brand-name">SqlGuard</span>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- HERO -->
+    <section class="hero">
+      <div class="container hero-inner">
+        <div class="hero-copy">
+          <h1>Deterministic SQL validation for CI.</h1>
+          <p class="lead">
+            SqlGuard is a commercial, non-SaaS CLI tool that validates SQL Server behavior in your CI pipeline —
+            focused on correctness, security, and regression prevention.
+          </p>
+
+          <div class="pill-row" aria-label="Key properties">
+            <span class="pill">CI-first</span>
+            <span class="pill">Offline-capable</span>
+            <span class="pill">No agents</span>
+            <span class="pill">No SaaS</span>
+            <span class="pill">Deterministic output</span>
+          </div>
+
+          <div class="cta-row">
+            <a class="btn primary" href="https://github.com/sqlguard-xtc/sqlguard#readme">Read docs</a>
+            <a class="btn" href="https://github.com/sqlguard-xtc/sqlguard/releases">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                <path d="M8.75 1.75a.75.75 0 00-1.5 0v6.69L4.22 5.47a.75.75 0 00-1.06 1.06l4.25 4.25a.75.75 0 001.06 0l4.25-4.25a.75.75 0 00-1.06-1.06L8.75 8.44V1.75z"/>
+                <path d="M2.5 11.5a.75.75 0 01.75.75v1.25c0 .138.112.25.25.25h9c.138 0 .25-.112.25-.25V12.25a.75.75 0 011.5 0v1.25A1.75 1.75 0 0112.5 15h-9A1.75 1.75 0 011.75 13.25V12.25a.75.75 0 01.75-.75z"/>
+              </svg>
+              Download releases
+            </a>
+          </div>
+
+          <p class="subtle">
+            Everything public lives in the
+            <a href="https://github.com/sqlguard-xtc/sqlguard">sqlguard</a> repository:
+            documentation, examples, and release binaries.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS (full width = no gap) -->
+    <section class="section" id="how">
+      <div class="container">
+        <h2>How SqlGuard works</h2>
+        <p class="subtle">
+          SqlGuard turns a declarative YAML spec into deterministic CI pass/fail results for SQL behavior.
+        </p>
+
+        <div class="how-grid">
+          <div class="panel how-step">
+            <div class="how-head">
+              <span class="how-title">Step 1 — Declare expectations (YAML)</span>
+              <span class="how-badge">spec</span>
+            </div>
+            <p class="subtle">
+              Describe what must remain true about your database behavior (shape, invariants, permissions).
+            </p>
+            <div class="code-wrapper">
+              <button class="code-copy" data-copy="# sqlguard.yaml (excerpt)&#10;suites:&#10;  - name: Orders schema&#10;    connection: main&#10;    checks:&#10;      - type: queryContract&#10;        sql: SELECT * FROM Orders" type="button" aria-label="Copy code">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"/>
+                  <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"/>
+                </svg>
+              </button>
+              <pre class="code" aria-label="YAML example"><code><span class="comment"># sqlguard.yaml (excerpt)</span>
+<span class="key">suites</span>:
+  - <span class="key">name</span>: <span class="string">Orders schema</span>
+    <span class="key">connection</span>: <span class="string">main</span>
+    <span class="key">checks</span>:
+      - <span class="key">type</span>: <span class="string">queryContract</span>
+        <span class="key">sql</span>: <span class="string">SELECT * FROM Orders</span></code></pre>
+            </div>
+          </div>
+
+          <div class="panel how-step">
+            <div class="how-head">
+              <span class="how-title">Step 2 — Run in CI (GitHub Actions)</span>
+              <span class="how-badge">execute</span>
+            </div>
+            <p class="subtle">
+              Add SqlGuard as a step in your CI workflow. Output is deterministic and machine-readable.
+            </p>
+            <div class="code-wrapper">
+              <button class="code-copy" data-copy="- name: SqlGuard validation&#10;  run: |&#10;    sqlguard validate-spec --spec sqlguard.yaml&#10;    sqlguard run --spec sqlguard.yaml --out report.json" type="button" aria-label="Copy code">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"/>
+                  <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"/>
+                </svg>
+              </button>
+              <pre class="code" aria-label="GitHub Actions example"><code><span class="comment"># .github/workflows/ci.yml</span>
+- <span class="key">name</span>: <span class="string">SqlGuard validation</span>
+  <span class="key">run</span>: |
+    sqlguard validate-spec --spec sqlguard.yaml
+    sqlguard run --spec sqlguard.yaml --out report.json</code></pre>
+            </div>
+          </div>
+
+          <div class="panel how-step">
+            <div class="how-head">
+              <span class="how-title">Step 3 — CI sees pass/fail</span>
+              <span class="how-badge">gate</span>
+            </div>
+            <p class="subtle">
+              Your CI treats it like tests. Exit codes follow standard conventions (0 = pass, non-zero = fail).
+            </p>
+            <div class="code-wrapper">
+              <button class="code-copy" data-copy="✔ Orders schema&#10;  ✔ queryContract: Orders columns unchanged&#10;&#10;Test Suites: 1 passed, 0 failed&#10;Exit code: 0" type="button" aria-label="Copy code">
+                <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor">
+                  <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"/>
+                  <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"/>
+                </svg>
+              </button>
+              <pre class="code" aria-label="CI-style output example"><code>✔ Orders schema
+  ✔ queryContract: Orders columns unchanged
+
+Test Suites: 1 passed, 0 failed
+Exit code: 0</code></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Trust row (kept) -->
+    <section class="section">
+      <div class="container">
+        <h2>Designed for platform and backend teams</h2>
+        <div class="grid three">
+          <div class="panel">
+            <h3>Correctness</h3>
+            <ul>
+              <li>Catch unintended behavior changes early</li>
+              <li>Deterministic results for CI</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>Security</h3>
+            <ul>
+              <li>Permission regression checks</li>
+              <li>No secrets in output (redaction)</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>Pragmatic</h3>
+            <ul>
+              <li>No SaaS, no agents, no dashboards</li>
+              <li>Public docs + private implementation</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <h2>What SqlGuard is (and isn’t)</h2>
+        <div class="grid two">
+          <div class="panel">
+            <h3>It is</h3>
+            <ul>
+              <li>A deterministic CI gate for SQL Server / Azure SQL changes</li>
+              <li>Designed for CI pipelines (GitHub Actions, Azure DevOps, Jenkins)</li>
+              <li>Focused on correctness, security checks, and regression prevention</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>It isn’t</h3>
+            <ul>
+              <li>A hosted SaaS service</li>
+              <li>A dashboard or monitoring/observability agent</li>
+              <li>A general-purpose query runner or ORM migration tool</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="contact">
+      <div class="container">
+        <h2>Contact</h2>
+        <p class="subtle">Commercial and security contact channels for SqlGuard.</p>
+
+        <div class="grid three">
+          <div class="panel">
+            <h3>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" class="icon-inline" aria-hidden="true">
+                <path d="M1.75 2h12.5c.966 0 1.75.784 1.75 1.75v8.5A1.75 1.75 0 0114.25 14H1.75A1.75 1.75 0 010 12.25v-8.5C0 2.784.784 2 1.75 2zM1.5 12.251c0 .138.112.25.25.25h12.5a.25.25 0 00.25-.25V5.809L8.38 9.397a.75.75 0 01-.76 0L1.5 5.809v6.442zm13-8.181v-.32a.25.25 0 00-.25-.25H1.75a.25.25 0 00-.25.25v.32L8 7.88l6.5-3.81z"/>
+              </svg>
+              Licensing
+            </h3>
+            <p><a href="mailto:sales@sqlguard.dev">sales@sqlguard.dev</a></p>
+            <button class="btn small copy-email" data-copy="sales@sqlguard.dev" type="button">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"/>
+                <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"/>
+              </svg>
+              Copy
+            </button>
+          </div>
+          <div class="panel">
+            <h3>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" class="icon-inline" aria-hidden="true">
+                <path d="M1.75 2h12.5c.966 0 1.75.784 1.75 1.75v8.5A1.75 1.75 0 0114.25 14H1.75A1.75 1.75 0 010 12.25v-8.5C0 2.784.784 2 1.75 2zM1.5 12.251c0 .138.112.25.25.25h12.5a.25.25 0 00.25-.25V5.809L8.38 9.397a.75.75 0 01-.76 0L1.5 5.809v6.442zm13-8.181v-.32a.25.25 0 00-.25-.25H1.75a.25.25 0 00-.25.25v.32L8 7.88l6.5-3.81z"/>
+              </svg>
+              Support
+            </h3>
+            <p><a href="mailto:support@sqlguard.dev">support@sqlguard.dev</a></p>
+            <button class="btn small copy-email" data-copy="support@sqlguard.dev" type="button">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"/>
+                <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"/>
+              </svg>
+              Copy
+            </button>
+          </div>
+          <div class="panel">
+            <h3>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" class="icon-inline" aria-hidden="true">
+                <path d="M1.75 2h12.5c.966 0 1.75.784 1.75 1.75v8.5A1.75 1.75 0 0114.25 14H1.75A1.75 1.75 0 010 12.25v-8.5C0 2.784.784 2 1.75 2zM1.5 12.251c0 .138.112.25.25.25h12.5a.25.25 0 00.25-.25V5.809L8.38 9.397a.75.75 0 01-.76 0L1.5 5.809v6.442zm13-8.181v-.32a.25.25 0 00-.25-.25H1.75a.25.25 0 00-.25.25v.32L8 7.88l6.5-3.81z"/>
+              </svg>
+              Security
+            </h3>
+            <p><a href="mailto:security@sqlguard.dev">security@sqlguard.dev</a></p>
+            <button class="btn small copy-email" data-copy="security@sqlguard.dev" type="button">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                <path d="M0 6.75C0 5.784.784 5 1.75 5h1.5a.75.75 0 010 1.5h-1.5a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-1.5a.75.75 0 011.5 0v1.5A1.75 1.75 0 019.25 16h-7.5A1.75 1.75 0 010 14.25v-7.5z"/>
+                <path d="M5 1.75C5 .784 5.784 0 6.75 0h7.5C15.216 0 16 .784 16 1.75v7.5A1.75 1.75 0 0114.25 11h-7.5A1.75 1.75 0 015 9.25v-7.5zm1.75-.25a.25.25 0 00-.25.25v7.5c0 .138.112.25.25.25h7.5a.25.25 0 00.25-.25v-7.5a.25.25 0 00-.25-.25h-7.5z"/>
+              </svg>
+              Copy
+            </button>
+          </div>
+        </div>
+
+        <p class="tiny subtle">
+          Vulnerabilities: please email <a href="mailto:security@sqlguard.dev">security@sqlguard.dev</a> instead of opening public issues.
+        </p>
+      </div>
+    </section>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <span class="tiny">© <span id="y"></span> SqlGuard</span>
+        <span class="tiny">
+          <a href="https://github.com/sqlguard-xtc/sqlguard">GitHub</a> ·
+          <a href="https://github.com/sqlguard-xtc/sqlguard/releases">Releases</a>
+        </span>
+      </div>
+    </footer>
+  </main>
+
+  <script>
+    document.getElementById("y").textContent = new Date().getFullYear();
+
+    // Copy functionality for all buttons with data-copy
+    document.querySelectorAll("[data-copy]").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const v = btn.getAttribute("data-copy").replace(/&#10;/g, '\n');
+        try {
+          await navigator.clipboard.writeText(v);
+          const isCodeCopy = btn.classList.contains('code-copy');
+          if (isCodeCopy) {
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M13.78 4.22a.75.75 0 010 1.06l-7.25 7.25a.75.75 0 01-1.06 0L2.22 9.28a.75.75 0 011.06-1.06L6 10.94l6.72-6.72a.75.75 0 011.06 0z"/></svg>';
+            btn.classList.add('copied');
+            setTimeout(() => {
+              btn.innerHTML = originalHTML;
+              btn.classList.remove('copied');
+            }, 1500);
+          } else {
+            const prev = btn.textContent;
+            btn.textContent = "Copied!";
+            setTimeout(() => (btn.textContent = prev), 1200);
+          }
+        } catch {
+          const ta = document.createElement("textarea");
+          ta.value = v;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand("copy");
+          ta.remove();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
