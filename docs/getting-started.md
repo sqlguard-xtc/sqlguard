@@ -77,7 +77,7 @@ jobs:
       
       - name: Download SqlGuard
         run: |
-          curl -LO https://github.com/sqlguard-xtc/sqlguard/releases/latest/download/sqlguard-linux-x64
+          curl -LO https://github.com/xtcsystems/sqlguard/releases/latest/download/sqlguard-linux-x64
           chmod +x sqlguard-linux-x64
           sudo mv sqlguard-linux-x64 /usr/local/bin/sqlguard
       
@@ -121,7 +121,7 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      curl -LO https://github.com/sqlguard-xtc/sqlguard/releases/latest/download/sqlguard-linux-x64
+      curl -LO https://github.com/xtcsystems/sqlguard/releases/latest/download/sqlguard-linux-x64
       chmod +x sqlguard-linux-x64
       sudo mv sqlguard-linux-x64 /usr/local/bin/sqlguard
       sqlguard version
@@ -162,7 +162,7 @@ Download the appropriate binary for your platform from the [releases page](relea
 **Windows:**
 ```powershell
 # Download latest release
-curl -LO https://github.com/sqlguard-xtc/sqlguard/releases/latest/download/sqlguard-win-x64.exe
+curl -LO https://github.com/xtcsystems/sqlguard/releases/latest/download/sqlguard-win-x64.exe
 
 # Rename for convenience
 Rename-Item sqlguard-win-x64.exe sqlguard.exe
@@ -171,7 +171,7 @@ Rename-Item sqlguard-win-x64.exe sqlguard.exe
 **Linux:**
 ```bash
 # Download latest release
-curl -LO https://github.com/sqlguard-xtc/sqlguard/releases/latest/download/sqlguard-linux-x64
+curl -LO https://github.com/xtcsystems/sqlguard/releases/latest/download/sqlguard-linux-x64
 
 # Make executable
 chmod +x sqlguard-linux-x64
@@ -522,7 +522,7 @@ Create snapshots to track changes over time:
 ### Get Help
 
 - **Command reference:** [README.md](../README.md)
-- **Bug reports:** [GitHub Issues](https://github.com/sqlguard-xtc/sqlguard/issues)
+- **Bug reports:** [GitHub Issues](https://github.com/xtcsystems/sqlguard/issues)
 - **Security issues:** security@sqlguard.dev
 - **Commercial support:** support@sqlguard.dev
 

@@ -44,16 +44,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Installation
 
-Download the appropriate binary for your platform from the [v1.0.0 release](https://github.com/sqlguard-xtc/sqlguard/releases/tag/v1.0.0):
+Download the appropriate binary for your platform from the [v1.0.0 release](https://github.com/xtcsystems/sqlguard/releases/tag/v1.0.0):
 
 **Windows:**
 ```powershell
-curl -LO https://github.com/sqlguard-xtc/sqlguard/releases/download/v1.0.0/sqlguard-v1.0.0-win-x64.exe
+curl -LO https://github.com/xtcsystems/sqlguard/releases/download/v1.0.0/sqlguard-v1.0.0-win-x64.exe
 ```
 
 **Linux:**
 ```bash
-curl -LO https://github.com/sqlguard-xtc/sqlguard/releases/download/v1.0.0/sqlguard-v1.0.0-linux-x64
+curl -LO https://github.com/xtcsystems/sqlguard/releases/download/v1.0.0/sqlguard-v1.0.0-linux-x64
 chmod +x sqlguard-v1.0.0-linux-x64
 ```
 

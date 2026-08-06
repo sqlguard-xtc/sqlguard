@@ -26,16 +26,16 @@ SqlGuard is distributed as self-contained, single-file executables for Windows a
 
 ### Download
 
-Download the latest release from the [Releases page](https://github.com/sqlguard-xtc/sqlguard/releases).
+Download the latest release from the [Releases page](https://github.com/xtcsystems/sqlguard/releases).
 
 **Windows (x64)**
 ```powershell
-curl -LO https://github.com/sqlguard-xtc/sqlguard/releases/latest/download/sqlguard-win-x64.exe
+curl -LO https://github.com/xtcsystems/sqlguard/releases/latest/download/sqlguard-win-x64.exe
 ```
 
 **Linux (x64)**
 ```bash
-curl -LO https://github.com/sqlguard-xtc/sqlguard/releases/latest/download/sqlguard-linux-x64
+curl -LO https://github.com/xtcsystems/sqlguard/releases/latest/download/sqlguard-linux-x64
 chmod +x sqlguard-linux-x64
 ```
 
@@ -103,7 +103,7 @@ jobs:
       
       - name: Download SqlGuard
         run: |
-          curl -LO https://github.com/sqlguard-xtc/sqlguard/releases/latest/download/sqlguard-linux-x64
+          curl -LO https://github.com/xtcsystems/sqlguard/releases/latest/download/sqlguard-linux-x64
           chmod +x sqlguard-linux-x64
           sudo mv sqlguard-linux-x64 /usr/local/bin/sqlguard
       
@@ -133,7 +133,7 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      curl -LO https://github.com/sqlguard-xtc/sqlguard/releases/latest/download/sqlguard-linux-x64
+      curl -LO https://github.com/xtcsystems/sqlguard/releases/latest/download/sqlguard-linux-x64
       chmod +x sqlguard-linux-x64
       sudo mv sqlguard-linux-x64 /usr/local/bin/sqlguard
 
@@ -323,9 +323,9 @@ See [SECURITY.md](SECURITY.md) for our security policy and how to report vulnera
 
 ## Support
 
-- **Issues:** Report bugs and feature requests on [GitHub Issues](https://github.com/sqlguard-xtc/sqlguard/issues)
+- **Issues:** Report bugs and feature requests on [GitHub Issues](https://github.com/xtcsystems/sqlguard/issues)
 - **Security:** security@sqlguard.dev
-- **Bug Reports:** [GitHub Issues](https://github.com/sqlguard-xtc/sqlguard/issues)
+- **Bug Reports:** [GitHub Issues](https://github.com/xtcsystems/sqlguard/issues)
 - **Commercial Support:** support@sqlguard.dev
 
 ---
