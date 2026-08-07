@@ -20,6 +20,25 @@ SqlGuard is a command-line tool for testing and validating SQL Server database c
 
 ---
 
+## Evaluate and License SqlGuard
+
+### Free Evaluation
+
+You can download and evaluate SqlGuard in development, testing, evaluation, or personal projects without an account, payment card, trial license, or online activation. Commercial and production use requires a license.
+
+- [Start a free evaluation](https://github.com/xtcsystems/sqlguard/releases)
+- [Follow the getting started guide](docs/getting-started.md)
+
+### Commercial License
+
+Commercial licenses are time-limited, issued per company, and validated locally without a license server. One signed license file can be used across the organization's machines and CI environments.
+
+[Request a commercial license](mailto:sales@sqlguard.dev?subject=SqlGuard%20commercial%20license%20request&body=Company%20name%3A%0ACompany%20domain%3A%0AIntended%20commercial%20use%3A%0A) by email with your company name, domain, and intended commercial use.
+
+See the [evaluation and licensing paths](https://www.sqlguard.dev/#commercial) for the same public terms.
+
+---
+
 ## Installation
 
 SqlGuard is distributed as self-contained, single-file executables for Windows and Linux.
@@ -311,7 +330,7 @@ Validates database security and access controls.
 
 This documentation and examples are licensed under the MIT License. See [LICENSE](LICENSE) for details.
 
-**Note:** The SqlGuard CLI is free for development, testing, and evaluation. Commercial and production use requires a license. Contact sales@sqlguard.dev for licensing information.
+**Note:** The SqlGuard CLI is free for development, testing, and evaluation. Commercial and production use requires a license. [Request a commercial license](mailto:sales@sqlguard.dev?subject=SqlGuard%20commercial%20license%20request&body=Company%20name%3A%0ACompany%20domain%3A%0AIntended%20commercial%20use%3A%0A) by email.
 
 ---
 
