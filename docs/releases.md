@@ -6,52 +6,32 @@ SqlGuard releases are distributed as self-contained executables for Windows and 
 
 All releases are published on GitHub:
 
-**[View All Releases →](https://github.com/sqlguard/sqlguard/releases)**
+**[View All Releases →](https://github.com/xtcsystems/sqlguard/releases)**
 
 ## Installation
 
-> **Note:** The examples below use v0.2.0. Check the [releases page](https://github.com/sqlguard/sqlguard/releases) for the latest version and update the version number in the commands below.
+The supported installers verify the selected release asset against its exact SHA-256 manifest entry before replacing the local executable. Pin a version when reproducibility matters.
 
 ### Windows
 
-Download the latest Windows executable:
+Install the latest Windows x64 executable:
 
 ```powershell
-# Download latest release (replace version number)
-curl -LO https://github.com/sqlguard/sqlguard/releases/download/v0.2.0/sqlguard-v0.2.0-win-x64.exe
-
-# Verify checksum (recommended)
-curl -LO https://github.com/sqlguard/sqlguard/releases/download/v0.2.0/sqlguard-v0.2.0-checksums.txt
-Get-FileHash sqlguard-v0.2.0-win-x64.exe -Algorithm SHA256
-
-# Rename for convenience
-Rename-Item sqlguard-v0.2.0-win-x64.exe sqlguard.exe
-
-# Verify it works
-.\sqlguard.exe version
+irm https://raw.githubusercontent.com/xtcsystems/sqlguard/main/install.ps1 | iex
 ```
+
+Use `./install.ps1 -Version 1.0.0` after downloading the script to pin a release or `-InstallDirectory` to select another user-writable location.
 
 ### Linux
 
-Download the latest Linux executable:
+Install the latest Linux x64 executable:
 
 ```bash
-# Download latest release (replace version number)
-curl -LO https://github.com/sqlguard/sqlguard/releases/download/v0.2.0/sqlguard-v0.2.0-linux-x64
-
-# Verify checksum (recommended)
-curl -LO https://github.com/sqlguard/sqlguard/releases/download/v0.2.0/sqlguard-v0.2.0-checksums.txt
-sha256sum -c sqlguard-v0.2.0-checksums.txt --ignore-missing
-
-# Make executable
-chmod +x sqlguard-v0.2.0-linux-x64
-
-# Rename for convenience
-mv sqlguard-v0.2.0-linux-x64 sqlguard
-
-# Verify it works
-./sqlguard version
+curl -fsSLO https://raw.githubusercontent.com/xtcsystems/sqlguard/main/install.sh
+bash install.sh
 ```
+
+Use `bash install.sh --version 1.0.0` to pin a release or `--install-dir` to select another user-writable location.
 
 ## Verifying Downloads
 
@@ -59,8 +39,8 @@ All releases include SHA256 checksums for integrity verification:
 
 **Windows:**
 ```powershell
-$expected = (Get-Content sqlguard-v0.2.0-checksums.txt | Select-String "win-x64.exe").Line.Split()[0]
-$actual = (Get-FileHash sqlguard-v0.2.0-win-x64.exe -Algorithm SHA256).Hash.ToLower()
+$expected = (Get-Content sqlguard-v1.0.0-checksums.txt | Select-String "win-x64.exe").Line.Split()[0]
+$actual = (Get-FileHash sqlguard-v1.0.0-win-x64.exe -Algorithm SHA256).Hash.ToLower()
 if ($expected -eq $actual) { 
     Write-Host "✅ Checksum verified" -ForegroundColor Green
 } else { 
@@ -70,7 +50,7 @@ if ($expected -eq $actual) {
 
 **Linux:**
 ```bash
-sha256sum -c sqlguard-v0.2.0-checksums.txt --ignore-missing
+sha256sum -c sqlguard-v1.0.0-checksums.txt --ignore-missing
 ```
 
 ## Version History
@@ -85,6 +65,6 @@ For licensing information, contact sales@sqlguard.dev or see the main [README](.
 
 ## Support
 
-- **Bug reports:** [GitHub Issues](https://github.com/sqlguard/sqlguard/issues)
+- **Bug reports:** [GitHub Issues](https://github.com/xtcsystems/sqlguard/issues)
 - **Security issues:** See [SECURITY.md](../SECURITY.md)
 - **Documentation:** [Getting Started Guide](getting-started.md)

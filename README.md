@@ -43,20 +43,22 @@ See the [evaluation and licensing paths](https://www.sqlguard.dev/#commercial) f
 
 SqlGuard is distributed as self-contained, single-file executables for Windows and Linux.
 
-### Download
+### Install
 
-Download the latest release from the [Releases page](https://github.com/xtcsystems/sqlguard/releases).
+The installers resolve a versioned [GitHub Release](https://github.com/xtcsystems/sqlguard/releases), verify the exact asset against its SHA-256 manifest entry, and replace the user-local executable atomically. They do not require administrator access or edit your shell profile.
 
 **Windows (x64)**
 ```powershell
-curl -LO https://github.com/xtcsystems/sqlguard/releases/latest/download/sqlguard-win-x64.exe
+irm https://raw.githubusercontent.com/xtcsystems/sqlguard/main/install.ps1 | iex
 ```
 
 **Linux (x64)**
 ```bash
-curl -LO https://github.com/xtcsystems/sqlguard/releases/latest/download/sqlguard-linux-x64
-chmod +x sqlguard-linux-x64
+curl -fsSLO https://raw.githubusercontent.com/xtcsystems/sqlguard/main/install.sh
+bash install.sh
 ```
+
+Pin a release with `./install.ps1 -Version 1.0.0` or `bash install.sh --version 1.0.0`. Use `-InstallDirectory` or `--install-dir` to choose a different user-writable directory. macOS and ARM are not currently supported.
 
 ### Verify Installation
 
@@ -70,33 +72,45 @@ sqlguard --version
 
 ### Overview
 
-SqlGuard validation requires two things:
-1. **A spec file** (`sqlguard-spec.yaml`) - defines what to validate
-2. **A CI/CD pipeline** - runs the validation automatically
+SqlGuard validation requires a specification and a SQL Server connection string supplied through an environment variable.
 
-### 1. Create Your Spec File
+### 1. Generate a Starter Spec
 
-Create `sqlguard-spec.yaml` in your repository root:
+From your repository root:
+
+```bash
+sqlguard init
+```
+
+This creates a safe `sqlguard-spec.yaml` that proves connectivity without assuming any application tables:
 
 ```yaml
 version: 1
 
 connections:
-  default:
+  - name: default
     connectionStringEnv: SQLGUARD_CONNECTION_STRING
 
 suites:
-  - name: database-checks
+  - name: first-run
     connection: default
     checks:
-      - id: verify-customer-count
-        type: queryContract
-        query: "SELECT COUNT(*) AS CustomerCount FROM Customers"
-        expect:
-          shape:
-            - name: CustomerCount
-              type: int
+      - type: invariant
+        name: database-is-reachable
+        description: Confirm SqlGuard can query this database.
+        query: SELECT CAST(0 AS int) AS ViolationCount
+        operator: equals
+        expectedValue: "0"
 ```
+
+SqlGuard never writes a connection string into the spec. Set `SQLGUARD_CONNECTION_STRING`, then run:
+
+```bash
+sqlguard validate-spec --spec sqlguard-spec.yaml
+sqlguard run --spec sqlguard-spec.yaml
+```
+
+After this succeeds, replace or extend the starter check with your application-specific contracts.
 
 ### 2. Add to Your CI/CD Pipeline
 
@@ -119,18 +133,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Download SqlGuard
-        run: |
-          curl -LO https://github.com/xtcsystems/sqlguard/releases/latest/download/sqlguard-linux-x64
-          chmod +x sqlguard-linux-x64
-          sudo mv sqlguard-linux-x64 /usr/local/bin/sqlguard
-      
-      - name: Validate database contracts
+
+      - name: Validate database contracts with SqlGuard
+        uses: xtcsystems/sqlguard@v1
+        with:
+          spec: sqlguard-spec.yaml
+          format: junit
+          output: sqlguard-results.xml
         env:
           SQLGUARD_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
-        run: sqlguard run --spec sqlguard-spec.yaml
 ```
+
+The action installs a checksum-verified Linux x64 release, validates the spec, runs the checks, and exposes the configured report path as its `report` output. Set `SQLGUARD_LICENSE_FILE` in `env` when a commercial license is required; the action does not accept or persist secret values as inputs.
 
 **Azure Pipelines**
 
@@ -152,9 +166,9 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      curl -LO https://github.com/xtcsystems/sqlguard/releases/latest/download/sqlguard-linux-x64
-      chmod +x sqlguard-linux-x64
-      sudo mv sqlguard-linux-x64 /usr/local/bin/sqlguard
+      curl -fsSLO https://raw.githubusercontent.com/xtcsystems/sqlguard/main/install.sh
+      bash install.sh --install-dir "$(Agent.TempDirectory)/sqlguard-bin"
+      echo "##vso[task.prependpath]$(Agent.TempDirectory)/sqlguard-bin"
 
 - task: Bash@3
   displayName: 'Run database validation'
@@ -191,6 +205,18 @@ Display version information.
 ```bash
 sqlguard version
 ```
+
+### `init`
+Create a deterministic starter specification without connecting to a database.
+
+```bash
+sqlguard init [--out <path>]
+```
+
+**Options:**
+- `--out`, `-o` - Output path (default: `sqlguard-spec.yaml`)
+
+The command refuses to overwrite an existing file. Exit code `0` means the file was created; `2` means the output path was unavailable or already existed.
 
 ### `validate-spec`
 Validate a specification file without executing checks.
