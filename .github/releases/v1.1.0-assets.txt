@@ -1,0 +1,3 @@
+sqlguard-v1.1.0-win-x64.exe
+sqlguard-v1.1.0-linux-x64
+sqlguard-v1.1.0-checksums.txt

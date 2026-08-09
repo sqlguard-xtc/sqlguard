@@ -6,48 +6,47 @@ This guide walks you through setting up SqlGuard in your CI/CD pipeline and runn
 
 - **SQL Server** (2019 or later)
 - **Database access** with at least `SELECT` permissions
-- **CI/CD pipeline** (GitHub Actions, Azure Pipelines, etc.)
-- **A spec file** defining what to validate
+- **SqlGuard installed** locally or in your CI/CD pipeline
 
 ## Quick Start
 
-### Step 1: Create Your Spec File
+### Step 1: Generate Your Starter Spec
 
-Create `sqlguard-spec.yaml` in your repository root. This declares what database behavior to validate:
+Run this from your repository root:
+
+```bash
+sqlguard init
+```
+
+SqlGuard creates a deterministic `sqlguard-spec.yaml` that verifies connectivity without assuming any application tables:
 
 ```yaml
 version: 1
 
 connections:
-  default:
+  - name: default
     connectionStringEnv: SQLGUARD_CONNECTION_STRING
 
 suites:
-  - name: basic-validation
+  - name: first-run
     connection: default
     checks:
-      # Validate query result structure
-      - id: customer-count
-        type: queryContract
-        query: "SELECT COUNT(*) AS Total FROM Customers WHERE Active = 1"
-        expect:
-          shape:
-            - name: Total
-              type: int
-              nullable: false
-      
-      # Assert data invariant
-      - id: no-orphaned-orders
-        type: invariant
-        query: |
-          SELECT COUNT(*) AS Orphans
-          FROM Orders o
-          LEFT JOIN Customers c ON o.CustomerId = c.CustomerId
-          WHERE c.CustomerId IS NULL
-        expect:
-          operator: equals
-          expectedValue: 0
+      - type: invariant
+        name: database-is-reachable
+        description: Confirm SqlGuard can query this database.
+        query: SELECT CAST(0 AS int) AS ViolationCount
+        operator: equals
+        expectedValue: "0"
 ```
+
+Set `SQLGUARD_CONNECTION_STRING` for the target SQL Server, then prove the local path:
+
+```bash
+sqlguard validate-spec --spec sqlguard-spec.yaml
+sqlguard run --spec sqlguard-spec.yaml
+```
+
+Once the starter check succeeds, replace or extend it with contracts for your own schema.
 
 ### Step 2: Add to CI/CD Pipeline
 
@@ -74,29 +73,27 @@ jobs:
     
     steps:
       - uses: actions/checkout@v4
-      
-      - name: Download SqlGuard
-        run: |
-          curl -LO https://github.com/xtcsystems/sqlguard/releases/latest/download/sqlguard-linux-x64
-          chmod +x sqlguard-linux-x64
-          sudo mv sqlguard-linux-x64 /usr/local/bin/sqlguard
-      
-      - name: Verify installation
-        run: sqlguard version
-      
-      - name: Validate database contracts
+
+      - name: Validate database contracts with SqlGuard
+        id: sqlguard
+        uses: xtcsystems/sqlguard@v1
+        with:
+          spec: sqlguard-spec.yaml
+          format: junit
+          output: sqlguard-results.xml
         env:
           SQLGUARD_CONNECTION_STRING: ${{ secrets.DB_CONNECTION_STRING }}
-        run: sqlguard run --spec sqlguard-spec.yaml --format junit --out test-results.xml
-      
+
       - name: Publish test results
         if: always()
         uses: dorny/test-reporter@v1
         with:
           name: SqlGuard Results
-          path: test-results.xml
+          path: sqlguard-results.xml
           reporter: java-junit
 ```
+
+The action installs a checksum-verified Linux x64 release before validating and running the spec. Keep `SQLGUARD_CONNECTION_STRING` in repository secrets. If commercial use requires a license file, create it in a prior step and pass only its path through `SQLGUARD_LICENSE_FILE`; the action never accepts or persists the license contents as an input.
 
 ### Azure Pipelines
 
@@ -121,9 +118,9 @@ steps:
   inputs:
     targetType: 'inline'
     script: |
-      curl -LO https://github.com/xtcsystems/sqlguard/releases/latest/download/sqlguard-linux-x64
-      chmod +x sqlguard-linux-x64
-      sudo mv sqlguard-linux-x64 /usr/local/bin/sqlguard
+      curl -fsSLO https://raw.githubusercontent.com/xtcsystems/sqlguard/main/install.sh
+      bash install.sh --install-dir "$(Agent.TempDirectory)/sqlguard-bin"
+      echo "##vso[task.prependpath]$(Agent.TempDirectory)/sqlguard-bin"
       sqlguard version
 
 - task: Bash@3
@@ -157,33 +154,29 @@ For testing locally before pushing to CI:
 
 ### Install SqlGuard
 
-Download the appropriate binary for your platform from the [releases page](releases.md):
+Use the checksum-verifying user-local installer. It does not require administrator access or edit your shell profile.
 
 **Windows:**
 ```powershell
-# Download latest release
-curl -LO https://github.com/xtcsystems/sqlguard/releases/latest/download/sqlguard-win-x64.exe
-
-# Rename for convenience
-Rename-Item sqlguard-win-x64.exe sqlguard.exe
+irm https://raw.githubusercontent.com/xtcsystems/sqlguard/main/install.ps1 | iex
 ```
 
 **Linux:**
 ```bash
-# Download latest release
-curl -LO https://github.com/xtcsystems/sqlguard/releases/latest/download/sqlguard-linux-x64
-
-# Make executable
-chmod +x sqlguard-linux-x64
-
-# Rename for convenience
-mv sqlguard-linux-x64 sqlguard
+curl -fsSLO https://raw.githubusercontent.com/xtcsystems/sqlguard/main/install.sh
+bash install.sh
 ```
 
 Verify it works:
 
 ```bash
-./sqlguard version
+sqlguard version
+```
+
+Generate a starter specification:
+
+```bash
+sqlguard init
 ```
 
 ### Set Connection String
@@ -206,24 +199,15 @@ export SQLGUARD_CONNECTION_STRING="Server=localhost;Database=MyDatabase;User Id=
 
 ### Verify Database Access
 
-TestRun Validation
-
 ```bash
 sqlguard run --spec sqlguard-spec.yaml
 ```
 
 ---
 
-## Next Steps
--- Ensure you can connect and query
-SELECT GETDATE() AS CurrentTime
-```
+## Customize Your Starter Spec
 
----
-
-## Step 3: Create Your First Spec File
-
-Create a file named `my-first-spec.yaml`:
+After the connectivity check succeeds, replace it with a contract for your own schema. For example:
 
 ```yaml
 version: 1
@@ -276,12 +260,12 @@ Individual validations to perform. This example uses a `queryContract` check to 
 
 ---
 
-## Step 4: Validate Your Spec
+## Validate Your Customized Spec
 
 Before running checks, validate that your spec file is correctly formatted:
 
 ```bash
-./sqlguard validate-spec --spec my-first-spec.yaml
+sqlguard validate-spec --spec sqlguard-spec.yaml
 ```
 
 **If successful**, you'll see:
@@ -308,12 +292,12 @@ Common validation errors:
 
 ---
 
-## Step 5: Run Your First Check
+## Run Your First Contract
 
 Now execute the checks against your database:
 
 ```bash
-./sqlguard run --spec my-first-spec.yaml
+sqlguard run --spec sqlguard-spec.yaml
 ```
 
 ### Understanding the Output
@@ -356,7 +340,7 @@ Use these exit codes in CI/CD to fail builds when validations don't pass.
 
 ---
 
-## Step 6: Understanding Results
+## Understanding Results
 
 ### Query Contract Checks
 
@@ -388,7 +372,7 @@ This tells you:
 
 ---
 
-## Step 7: Common Patterns
+## Common Patterns
 
 ### Pattern 1: Invariant Checks (Data Quality)
 
@@ -463,7 +447,7 @@ suites:
 
 ---
 
-## Step 8: Next Steps
+## Next Steps
 
 ### Explore More Examples
 

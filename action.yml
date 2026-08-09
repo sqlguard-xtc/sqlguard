@@ -1,0 +1,42 @@
+name: SqlGuard SQL Server Contract Validation
+description: Install SqlGuard and run deterministic SQL Server contract validation in GitHub Actions.
+author: XTC Systems
+
+branding:
+  icon: shield
+  color: blue
+
+inputs:
+  spec:
+    description: Path to the SqlGuard specification file.
+    required: true
+  version:
+    description: SqlGuard release version to install, such as 1.0.0 or latest.
+    required: false
+    default: latest
+  format:
+    description: Report format. Supported values are json and junit.
+    required: false
+    default: junit
+  output:
+    description: Path for the generated SqlGuard report.
+    required: false
+    default: sqlguard-results.xml
+
+outputs:
+  report:
+    description: Path to the generated SqlGuard report.
+    value: ${{ steps.sqlguard.outputs.report }}
+
+runs:
+  using: composite
+  steps:
+    - name: Install and run SqlGuard
+      id: sqlguard
+      shell: bash
+      env:
+        SQLGUARD_ACTION_SPEC: ${{ inputs.spec }}
+        SQLGUARD_ACTION_VERSION: ${{ inputs.version }}
+        SQLGUARD_ACTION_FORMAT: ${{ inputs.format }}
+        SQLGUARD_ACTION_OUTPUT: ${{ inputs.output }}
+      run: bash "$GITHUB_ACTION_PATH/action/run.sh"
